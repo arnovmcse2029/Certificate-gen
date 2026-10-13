@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10264a">
+  <title>Offline Certificate Generator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page-shell">
+    <section class="card" aria-labelledby="pageTitle">
+      <div class="brand-mark" aria-hidden="true">CG</div>
+      <p class="eyebrow"></p>
+      <h1 id="pageTitle">PIMC 2027</h1>
+      <p class="subtitle">Enter Your Details and then Generate your Certificate </p>
+
+      <form id="certForm" novalidate>
+        <div class="field">
+          <label for="fullName">Full Name</label>
+          <input
+            type="text"
+            id="fullName"
+            name="fullName"
+            maxlength="80"
+            placeholder="e.g. Alex Morgan"
+            autocomplete="name"
+            required
+            aria-describedby="fullNameHint"
+          >
+          <small id="fullNameHint">This is the only form detail printed on the certificate.</small>
+        </div>
+
+        <div class="field">
+          <label for="age">TEAM CODE </label>
+          <input
+            type="number"
+            id="age"
+            name="age"
+            min="1"
+            max="120"
+            step="1"
+            placeholder="e.g. 24"
+            inputmode="numeric"
+            required
+          >
+        </div>
+
+        <div class="field">
+          <label for="competition">Competition</label>
+          <input
+            type="text"
+            id="competition"
+            name="competition"
+            maxlength="200"
+            placeholder="Enter competition name"
+            required
+          >
+        </div>
+
+        <div class="field">
+          <label for="compDate">Date</label>
+          <input type="date" id="compDate" name="compDate" required>
+        </div>
+
+        <p id="message" class="message" role="status" aria-live="polite"></p>
+        <p id="syncMessage" class="message" role="status" aria-live="polite"></p>
+
+        <div class="buttons">
+          <button type="submit" id="generateBtn" class="btn primary">Generate Certificate</button>
+          <button type="button" id="downloadBtn" class="btn secondary" disabled>Download Certificate</button>
+          <button type="button" id="retrySyncBtn" class="btn secondary" hidden>Retry Database Submission</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <canvas id="certificateCanvas" hidden aria-hidden="true"></canvas>
+  <script src="script.js"></script>
+</body>
+</html>
