@@ -17,13 +17,13 @@ The Supabase project and `public.certificate_records` table must already exist. 
 
    The linked project reference is `txhcawhffakceojbfnno`; confirm the API URL in the Supabase dashboard under **Project Settings → API**.
 
-2. Apply the migration. The verified table already has an identity `id` and a text `serial_number` with a unique constraint, so the migration preserves them and advances the identity sequence past existing IDs. It adds the missing idempotency column and unique index.
+2. Apply the migrations. The verified table already has an identity `id` and a text `serial_number` with a unique constraint, so the migrations preserve them and advance the identity sequence past existing IDs. They add the idempotency, phone, and email columns. The legacy `competition` column is made optional because the current form no longer collects it.
 
    ```powershell
    npx.cmd supabase@latest db push --project-ref txhcawhffakceojbfnno
    ```
 
-   Alternatively, paste the SQL from `supabase/migrations/20261013120000_certificate_record_idempotency.sql` into the dashboard's SQL Editor and run it once.
+   Alternatively, run the SQL files in `supabase/migrations/` in timestamp order in the dashboard's SQL Editor.
 
 3. Configure the function origin allowlist. Supabase injects `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` into the Edge Function runtime; the latter is server-only and must never be copied into frontend code. In **Edge Functions → Secrets**, add:
 
@@ -70,7 +70,7 @@ The Supabase project and `public.certificate_records` table must already exist. 
 
 - Submit a test form while online. The page should report that the database saved the record and show its serial number.
 - A safe request using the configured publishable key reached the function. Direct table access is denied as expected because public table access is revoked. Do not add anon table grants or disable RLS. Never share any secret or service-role key in chat.
-- The linked project schema was inspected with the Supabase CLI: `id` is `bigint NOT NULL` and already an identity column, `serial_number` is nullable text with a unique constraint, `full_name` is required text, `age` is nullable integer, `phone_number` and `email_address` record the contact details, and `created_at` defaults to `now()`. The migration synchronizes the identity sequence and adds `idempotency_key`. To inspect the schema again in the Supabase SQL Editor:
+- The linked project schema was inspected with the Supabase CLI: `id` is `bigint NOT NULL` and already an identity column, `serial_number` is nullable text with a unique constraint, `full_name` is required text, `age` is nullable integer, `competition` and `competition_date` are legacy optional fields, `phone_number` and `email_address` record the contact details, and `created_at` defaults to `now()`. The migrations synchronize the identity sequence, add `idempotency_key`, `phone_number`, and `email_address`, and make `competition` optional. To inspect the schema again in the Supabase SQL Editor:
 
   ```sql
   select column_name, data_type, is_nullable, column_default
