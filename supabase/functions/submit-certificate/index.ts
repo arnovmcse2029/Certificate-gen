@@ -8,8 +8,8 @@ type Submission = {
   idempotencyKey: string;
   fullName: string;
   age: number;
-  competition: string;
-  competitionDate: string;
+  phoneNumber: string;
+  emailAddress: string;
 };
 
 type StoredRecord = {
@@ -17,8 +17,10 @@ type StoredRecord = {
   idempotency_key: string;
   full_name: string;
   age: number;
-  competition: string;
-  competition_date: string;
+  phone_number?: string;
+  email_address?: string;
+  competition?: string;
+  competition_date?: string;
 };
 
 function jsonResponse(
@@ -32,12 +34,12 @@ function jsonResponse(
   });
 }
 
-function isValidDate(value: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return false;
-  }
-  const parsed = new Date(`${value}T00:00:00.000Z`);
-  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+function isValidPhoneNumber(value: string) {
+  return /^[+()0-9\s-]{7,20}$/.test(value);
+}
+
+function isValidEmailAddress(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
 function validateSubmission(value: unknown): Submission | null {
@@ -47,9 +49,8 @@ function validateSubmission(value: unknown): Submission | null {
 
   const record = value as Record<string, unknown>;
   const fullName = typeof record.fullName === "string" ? record.fullName.trim() : "";
-  const competition = typeof record.competition === "string" ? record.competition.trim() : "";
-  const competitionDate =
-    typeof record.competitionDate === "string" ? record.competitionDate : "";
+  const phoneNumber = typeof record.phoneNumber === "string" ? record.phoneNumber.trim() : "";
+  const emailAddress = typeof record.emailAddress === "string" ? record.emailAddress.trim() : "";
   const idempotencyKey =
     typeof record.idempotencyKey === "string" ? record.idempotencyKey.toLowerCase() : "";
 
@@ -60,10 +61,12 @@ function validateSubmission(value: unknown): Submission | null {
     !Number.isInteger(record.age) ||
     (record.age as number) < 1 ||
     (record.age as number) > 120 ||
-    competition.length === 0 ||
-    competition.length > 200 ||
-    /[\u0000-\u001f\u007f]/.test(competition) ||
-    !isValidDate(competitionDate) ||
+    phoneNumber.length === 0 ||
+    phoneNumber.length > 20 ||
+    !isValidPhoneNumber(phoneNumber) ||
+    emailAddress.length === 0 ||
+    emailAddress.length > 255 ||
+    !isValidEmailAddress(emailAddress) ||
     !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(idempotencyKey)
   ) {
     return null;
@@ -73,16 +76,16 @@ function validateSubmission(value: unknown): Submission | null {
     idempotencyKey,
     fullName,
     age: record.age as number,
-    competition,
-    competitionDate
+    phoneNumber,
+    emailAddress
   };
 }
 
 function sameSubmission(stored: StoredRecord, submission: Submission) {
   return stored.full_name === submission.fullName &&
     stored.age === submission.age &&
-    stored.competition === submission.competition &&
-    stored.competition_date === submission.competitionDate;
+    (stored.phone_number ?? "") === submission.phoneNumber &&
+    (stored.email_address ?? "") === submission.emailAddress;
 }
 
 function serviceHeaders(serviceKey: string, prefer?: string) {
@@ -107,7 +110,7 @@ async function findByIdempotencyKey(
   idempotencyKey: string
 ): Promise<StoredRecord | null> {
   const query = new URLSearchParams({
-    select: "idempotency_key,serial_number,full_name,age,competition,competition_date",
+    select: "idempotency_key,serial_number,full_name,age,phone_number,email_address",
     idempotency_key: `eq.${idempotencyKey}`,
     limit: "1"
   });
@@ -198,7 +201,7 @@ async function handleRequest(request: Request): Promise<Response> {
   }
   const submission = validateSubmission(body);
   if (!submission) {
-    return jsonResponse({ error: "Check the required name, team code, competition, date, and retry token." }, 400, corsHeaders);
+    return jsonResponse({ error: "Check the required name, team code, phone number, email address, and retry token." }, 400, corsHeaders);
   }
 
   const projectUrl = Deno.env.get("SUPABASE_URL")?.replace(/\/+$/, "");
@@ -226,8 +229,8 @@ async function handleRequest(request: Request): Promise<Response> {
           serial_number: serialNumber,
           full_name: submission.fullName,
           age: submission.age,
-          competition: submission.competition,
-          competition_date: submission.competitionDate,
+          phone_number: submission.phoneNumber,
+          email_address: submission.emailAddress,
           idempotency_key: submission.idempotencyKey
         })
       });

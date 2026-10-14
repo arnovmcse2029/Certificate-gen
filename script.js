@@ -20,7 +20,7 @@ const message = document.getElementById("message");
 const syncMessage = document.getElementById("syncMessage");
 const retrySyncBtn = document.getElementById("retrySyncBtn");
 const canvas = document.getElementById("certificateCanvas");
-const fields = ["fullName", "age", "competition", "compDate"]
+const fields = ["fullName", "age", "phoneNumber", "emailAddress"]
   .map((id) => document.getElementById(id));
 
 let pdfBlob = null;
@@ -135,8 +135,13 @@ async function syncPendingSubmission() {
 }
 
 function validateForm() {
-  const [nameField, ageField, competitionField, dateField] = fields;
+  const [nameField, ageField, phoneField, emailField] = fields;
   const age = ageField.valueAsNumber;
+  const phoneNumber = phoneField.value.trim();
+  const emailAddress = emailField.value.trim();
+  const phonePattern = /^[+()0-9\s-]{7,20}$/;
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   const fieldErrors = new Map([
     [nameField, nameField.value.trim() ? "" : "Enter the participant's full name."],
     [
@@ -145,11 +150,8 @@ function validateForm() {
         ? ""
         : "Enter a whole-number age from 1 to 120."
     ],
-    [
-      competitionField,
-      competitionField.value.trim() ? "" : "Enter the competition name."
-    ],
-    [dateField, dateField.value ? "" : "Select a date."]
+    [phoneField, phonePattern.test(phoneNumber) ? "" : "Enter a valid phone number."],
+    [emailField, emailPattern.test(emailAddress) ? "" : "Enter a valid email address."]
   ]);
 
   let firstError = "";
@@ -330,8 +332,8 @@ form.addEventListener("submit", async (event) => {
     idempotencyKey: crypto.randomUUID(),
     fullName: name,
     age: Number(fields[1].value),
-    competition: fields[2].value.trim(),
-    competitionDate: fields[3].value
+    phoneNumber: fields[2].value.trim(),
+    emailAddress: fields[3].value.trim()
   };
   generateBtn.disabled = true;
   generateBtn.textContent = "Generating...";
