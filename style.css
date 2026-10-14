@@ -220,6 +220,44 @@ input[aria-invalid="true"]:focus-visible {
   cursor: not-allowed;
 }
 
+.flower-blast {
+  position: fixed;
+  z-index: 10;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.flower-blast__flower {
+  position: fixed;
+  top: var(--start-y);
+  left: var(--start-x);
+  font-size: var(--flower-size);
+  line-height: 1;
+  opacity: 0;
+  animation: flower-burst var(--duration) cubic-bezier(0.12, 0.7, 0.28, 1) var(--delay) forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes flower-burst {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2) rotate(0deg);
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(
+      calc(-50% + var(--travel-x)),
+      calc(-50% + var(--travel-y))
+    ) scale(1) rotate(var(--rotation));
+  }
+}
+
 @media (max-width: 520px) {
   .page-shell {
     padding: 20px 14px;
@@ -237,5 +275,10 @@ input[aria-invalid="true"]:focus-visible {
   *::after {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .flower-blast__flower {
+    animation: none;
+    display: none;
   }
 }

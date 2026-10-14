@@ -19,6 +19,7 @@ const downloadBtn = document.getElementById("downloadBtn");
 const message = document.getElementById("message");
 const syncMessage = document.getElementById("syncMessage");
 const retrySyncBtn = document.getElementById("retrySyncBtn");
+const flowerBlast = document.getElementById("flowerBlast");
 const canvas = document.getElementById("certificateCanvas");
 const fields = ["fullName", "age", "phoneNumber", "emailAddress"]
   .map((id) => document.getElementById(id));
@@ -43,6 +44,37 @@ function resetResult() {
 function setSyncMessage(text, type = "") {
   syncMessage.textContent = text;
   syncMessage.className = `message ${type}`.trim();
+}
+
+function playFlowerBlast() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    return;
+  }
+
+  const origin = generateBtn.getBoundingClientRect();
+  const symbols = ["🌸", "🌼", "🌺", "🌷", "💮"];
+  const fragment = document.createDocumentFragment();
+  const flowerCount = 28;
+
+  for (let index = 0; index < flowerCount; index += 1) {
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 100 + Math.random() * Math.min(window.innerWidth * 0.38, 300);
+    const flower = document.createElement("span");
+    flower.className = "flower-blast__flower";
+    flower.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    flower.style.setProperty("--start-x", `${origin.left + origin.width / 2}px`);
+    flower.style.setProperty("--start-y", `${origin.top + origin.height / 2}px`);
+    flower.style.setProperty("--travel-x", `${Math.cos(angle) * distance}px`);
+    flower.style.setProperty("--travel-y", `${Math.sin(angle) * distance}px`);
+    flower.style.setProperty("--rotation", `${Math.random() * 540 - 270}deg`);
+    flower.style.setProperty("--flower-size", `${18 + Math.random() * 14}px`);
+    flower.style.setProperty("--duration", `${1.3 + Math.random() * 0.6}s`);
+    flower.style.setProperty("--delay", `${Math.random() * 0.12}s`);
+    fragment.appendChild(flower);
+  }
+
+  flowerBlast.replaceChildren(fragment);
+  window.setTimeout(() => flowerBlast.replaceChildren(), 2200);
 }
 
 function getSubmissionsEndpoint() {
@@ -350,6 +382,7 @@ form.addEventListener("submit", async (event) => {
     pdfBlob = generatedPdf;
     pdfFileName = sanitizeFileName(name);
     downloadBtn.disabled = false;
+    playFlowerBlast();
     showMessage("Certificate PDF generated. Your other details are not printed.");
     pendingSubmission = submission;
     await syncPendingSubmission();
